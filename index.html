@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Talking Tom on the sky</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        body {
+            background-color: #0b0b0e;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+            color: white;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            overflow-y: auto;
+            padding: 15px 0;
+        }
+        
+        /* Seletor de Idiomas no Topo */
+        #lang-selector {
+            margin-bottom: 8px;
+            display: flex;
+            gap: 5px;
+            flex-wrap: wrap;
+            justify-content: center;
+            max-width: 360px;
+        }
+        .lang-btn {
+            background: #222;
+            color: #ffcc00;
+            border: 2px solid #ffcc00;
+            padding: 4px 8px;
+            border-radius: 6px;
+            font-size: 0.75rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+        .lang-btn.active, .lang-btn:hover {
+            background: #ffcc00;
+            color: #222;
+        }
+
+        h1 {
+            font-size: 1.1rem;
+            margin-bottom: 8px;
+            color: #ffcc00;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.5);
+        }
+        #game-container {
+            position: relative;
+            width: 360px;
+            height: 540px;
+            background-image: url('images/1000175436.jpg');
+            background-size: cover;
+            background-position: center;
+            overflow: hidden;
+            border: 4px solid #222;
+            border-radius: 12px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.7);
+        }
+        #tom-img {
+            position: absolute;
+            left: 50%;
+            top: 54%;
+            transform: translate(-50%, -50%);
+            width: 380px;
+            height: 520px;
+            object-fit: contain;
+            pointer-events: none;
+        }
+        #chat-box {
+            position: absolute;
+            bottom: 20px;
+            left: 20px;
+            right: 20px;
+            background: rgba(255, 255, 255, 0.95);
+            color: #111;
+            padding: 10px;
+            border-radius: 10px;
+            font-size: 14px;
+            font-weight: bold;
+            text-align: center;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+            display: none;
+            z-index: 99;
+        }
+        #controls {
+            margin-top: 15px;
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 6px;
+            width: 360px;
+            padding-bottom: 20px;
+        }
+        button {
+            padding: 10px 4px;
+            background: linear-gradient(to bottom, #ffdd33, #ffaa00);
+            border: none;
+            border-radius: 6px;
+            font-weight: bold;
+            font-size: 0.7rem;
+            color: #222;
+            cursor: pointer;
+            box-shadow: 0 3px 6px rgba(0,0,0,0.3);
+        }
+        button:active {
+            transform: scale(0.95);
+            background: linear-gradient(to bottom, #cc9900, #996600);
+            color: white;
+        }
+        .btn-chat {
+            grid-column: span 4;
+            background: linear-gradient(to bottom, #33ccff, #0088cc);
+            color: white;
+            font-size: 0.85rem;
+            padding: 12px;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Botões de Troca de Idioma -->
+    <div id="lang-selector">
+        <button class="lang-btn" id="btn-en" onclick="setLanguage('en')">EN</button>
+        <button class="lang-btn" id="btn-es" onclick="setLanguage('es')">ES</button>
+        <button class="lang-btn" id="btn-pt" onclick="setLanguage('pt')">PT</button>
+        <button class="lang-btn" id="btn-ru" onclick="setLanguage('ru')">RU</button>
+        <button class="lang-btn" id="btn-fr" onclick="setLanguage('fr')">FR</button>
+        <button class="lang-btn" id="btn-de" onclick="setLanguage('de')">DE</button>
+    </div>
+
+    <h1>Talking Tom on the sky</h1>
+    
+    <div id="game-container">
+        <img id="tom-img" src="images/cat_zeh0000.png" alt="Tom">
+        <div id="chat-box"></div>
+    </div>
+
+    <!-- Botões do Jogo -->
+    <div id="controls">
+        <button id="lbl-leite" onclick="triggerAction('leite')">Leite</button>
+        <button id="lbl-prato" onclick="triggerAction('prato')">Prato</button>
+        <button id="lbl-bolo" onclick="triggerAction('bolo')">Bolo</button>
+        <button id="lbl-passarinho" onclick="triggerAction('passarinho')">Passarinho</button>
+        <button id="lbl-arranhar" onclick="triggerAction('arranhar')">Arranhar</button>
+        <button id="lbl-cabeca" onclick="triggerAction('tapaCabeca')">Tapa Cabeça</button>
+        <button id="lbl-barriga" onclick="triggerAction('tapaBarriga')">Tapa Barriga</button>
+        <button id="lbl-peido" onclick="triggerAction('peidar')">Peidar</button>
+        <button id="lbl-pergunta" onclick="triggerAction('pergunta')">Pergunta</button>
+        <button class="btn-chat" id="lbl-chatbot" onclick="triggerAction('chatbot')">💬 Conversar com o Tom</button>
+    </div>
+
+    <script>
+        // Dicionário 100% revisado e polido para nativos
+        const translations = {
+            en: {
+                leite: "Milk", prato: "Cymbal", bolo: "Cake", passarinho: "Bird", arranhar: "Scratch",
+                tapaCabeca: "Head Slap", tapaBarriga: "Belly Slap", peido: "Fart", pergunta: "Question",
+                chatbot: "💬 Talk to Tom", promptText: "What do you want to say to Tom?",
+                defaultAnswer: "Hmm...", nameAns: "My name is Tom!", helloAns: "Hello!", 
+                goodAns: "I am doing great!", badWordAns: "I won't use bad words", byeAns: "Bye!", 
+                morningAns: "Good morning!", afternoonAns: "Good afternoon!", nightAns: "Good night!"
+            },
+            es: {
+                leite: "Leche", prato: "Platillos", bolo: "Pastel", passarinho: "Pájaro", arranhar: "Arañar",
+                tapaCabeca: "Golpe Cabeza", tapaBarriga: "Golpe Panza", peido: "Pedo", pergunta: "Pregunta",
+                chatbot: "💬 Hablar con Tom", promptText: "¿Qué quieres decirle a Tom?",
+                defaultAnswer: "Hmm...", nameAns: "¡Mi nombre es Tom!", helloAns: "¡Hola!", 
+                goodAns: "¡Todo excelente!", badWordAns: "No voy a decir groserías", byeAns: "¡Adiós!", 
+                morningAns: "¡Buenos días!", afternoonAns: "¡Buenas tardes!", nightAns: "¡Buenas noches!"
+            },
+            pt: {
+                leite: "Leite", prato: "Prato", bolo: "Bolo", passarinho: "Passarinho", arranhar: "Arranhar",
+                tapaCabeca: "Tapa Cabeça", tapaBarriga: "Tapa Barriga", peido: "Peidar", pergunta: "Pergunta",
+                chatbot: "💬 Conversar com o Tom", promptText: "O que você quer dizer ao Tom?",
+                defaultAnswer: "Hmm...", nameAns: "Meu nome é Tom!", helloAns: "Olá!", 
+                goodAns: "Tudo ótimo!", badWordAns: "Eu não vou falar palavrão", byeAns: "Tchau!", 
+                morningAns: "Bom dia!", afternoonAns: "Boa tarde!", nightAns: "Boa noite!"
+            },
+            ru: {
+                leite: "Молоко", prato: "Тарелки", bolo: "Торт", passarinho: "Птица", arranhar: "Царапать",
+                tapaCabeca: "Удар в голову", tapaBarriga: "Удар в живот", peido: "Пук", pergunta: "Вопрос",
+                chatbot: "💬 Поговорить с Томом", promptText: "Что ты хочешь сказать Тому?",
+                defaultAnswer: "Хмм...", nameAns: "Меня зовут Том!", helloAns: "Привет!", 
+                goodAns: "Всё отлично!", badWordAns: "Я не буду ругаться", byeAns: "Пока!", 
+                morningAns: "Доброе утро!", afternoonAns: "Добрый день!", nightAns: "Спокойной ночи!"
+            },
+            fr: {
+                leite: "Lait", prato: "Cymbales", bolo: "Gâteau", passarinho: "Oiseau", arranhar: "Griffer",
+                tapaCabeca: "Gifle Tête", tapaBarriga: "Gifle Ventre", peido: "Pet", pergunta: "Question",
+                chatbot: "💬 Parler à Tom", promptText: "Que veux-tu dire à Tom ?",
+                defaultAnswer: "Hmm...", nameAns: "Je m'appelle Tom !", helloAns: "Salut !", 
+                goodAns: "Tout va super bien !", badWordAns: "Je ne dirai pas de gros mots", byeAns: "Au revoir !", 
+                morningAns: "Bonjour !", afternoonAns: "Bon après-midi !", nightAns: "Bonne nuit !"
+            },
+            de: {
+                leite: "Milch", prato: "Becken", bolo: "Kuchen", passarinho: "Vogel", arranhar: "Kratzen",
+                tapaCabeca: "Kopfnuss", tapaBarriga: "Bauchschlag", peido: "Furz", pergunta: "Frage",
+                chatbot: "💬 Mit Tom sprechen", promptText: "Was möchtest du Tom sagen?",
+                defaultAnswer: "Hmm...", nameAns: "Ich heiße Tom!", helloAns: "Hallo!", 
+                goodAns: "Mir geht's großartig!", badWordAns: "Ich werde nicht schimpfen", byeAns: "Tschüss!", 
+                morningAns: "Guten Morgen!", afternoonAns: "Guten Tag!", nightAns: "Gute Nacht!"
+            }
+        };
+
+        let currentLang = localStorage.getItem('tom_lang') || 'en';
+
+        function setLanguage(lang) {
+            currentLang = lang;
+            localStorage.setItem('tom_lang', lang);
+
+            document.querySelectorAll('.lang-btn').forEach(btn => btn.classList.remove('active'));
+            document.getElementById('btn-' + lang).classList.add('active');
+
+            const t = translations[lang];
+            document.getElementById('lbl-leite').innerText = t.leite;
+            document.getElementById('lbl-prato').innerText = t.prato;
+            document.getElementById('lbl-bolo').innerText = t.bolo;
+            document.getElementById('lbl-passarinho').innerText = t.passarinho;
+            document.getElementById('lbl-arranhar').innerText = t.arranhar;
+            document.getElementById('lbl-cabeca').innerText = t.tapaCabeca;
+            document.getElementById('lbl-barriga').innerText = t.tapaBarriga;
+            document.getElementById('lbl-peido').innerText = t.peido;
+            document.getElementById('lbl-pergunta').innerText = t.pergunta;
+            document.getElementById('lbl-chatbot').innerText = t.chatbot;
+        }
+
+        setLanguage(currentLang);
+
+        function makeFrames(prefix, start, end, step = 1) {
+            let list = [];
+            for (let i = start; i <= end; i += step) {
+                let num = String(i).padStart(4, '0');
+                list.push(`images/${prefix}${num}.png`);
+            }
+            return list;
+        }
+
+        const animations = {
+            leite: makeFrames('cat_drink', 0, 78, 2),       
+            prato: makeFrames('cat_cymbal', 0, 12, 1),      
+            bolo: makeFrames('cat_pie', 0, 22, 1),          
+            passarinho: makeFrames('cat_eat', 0, 39, 1),    
+            arranhar: makeFrames('cat_scratch', 0, 52, 2),  
+            cabeca: makeFrames('cat_knockout', 0, 12, 1),   
+            barriga: makeFrames('cat_stomach', 0, 33, 1),   
+            peido: makeFrames('cat_fart', 0, 27, 1),        
+            pergunta: makeFrames('cat_talk', 0, 15, 1)      
+        };
+
+        const tomImg = document.getElementById('tom-img');
+        let activeInterval = null;
+
+        function playSound(file) {
+            try {
+                let audio = new Audio('sounds/' + file);
+                audio.play().catch(e => console.log("Áudio bloqueado:", file));
+            } catch(err) {}
+        }
+
+        function playAnimation(frames, soundFile, speed) {
+            playSound(soundFile);
+            if (activeInterval) {
+                clearInterval(activeInterval);
+                activeInterval = null;
+            }
+
+            let index = 0;
+            tomImg.src = frames[0];
+
+            activeInterval = setInterval(() => {
+                index++;
+                if (index < frames.length) {
+                    tomImg.src = frames[index];
+                } else {
+                    clearInterval(activeInterval);
+                    activeInterval = null;
+                    tomImg.src = 'images/cat_zeh0000.png';
+                }
+            }, speed);
+        }
+
+        function triggerAction(action) {
+            const chatBox = document.getElementById('chat-box');
+            chatBox.style.display = 'none';
+
+            if (action === 'leite') {
+                playAnimation(animations.leite, 'lv_0_20260731224012.mp3', 200);
+            } 
+            else if (action === 'prato') {
+                playAnimation(animations.prato, 'cymbal_8000.wav', 100);
+            }
+            else if (action === 'bolo') {
+                playAnimation(animations.bolo, 'Bolo.mp3', 100);
+            }
+            else if (action === 'passarinho') {
+                playAnimation(animations.passarinho, 'p_eat_8000.wav', 100);
+            }
+            else if (action === 'arranhar') {
+                playAnimation(animations.arranhar, 'Arranhar.mp3', 200);
+            }
+            else if (action === 'tapaCabeca') {
+                playAnimation(animations.cabeca, 'slap1_8000.wav', 100);
+            }
+            else if (action === 'tapaBarriga') {
+                playAnimation(animations.barriga, 'p_belly1_8000.wav', 100);
+            }
+            else if (action === 'peidar') {
+                const r = Math.floor(Math.random() * 3) + 1;
+                let s = r === 1 ? 'fart001_8000.wav' : (r === 2 ? 'fart002_8000.wav' : 'fart003_8000.wav');
+                playAnimation(animations.peido, s, 100);
+            }
+            else if (action === 'pergunta') {
+                const r = Math.floor(Math.random() * 2) + 1;
+                let s = r === 1 ? 'YES.mp3' : 'NO.mp3';
+                playAnimation(animations.pergunta, s, 45); 
+            }
+            else if (action === 'chatbot') {
+                const t = translations[currentLang];
+                let userQ = prompt(t.promptText);
+                if (!userQ) return;
+                
+                let resposta = t.defaultAnswer;
+                let qLower = userQ.trim().toLowerCase();
+                
+                if (qLower.includes('nome') || qLower.includes('name') || qLower.includes('nombre') || qLower.includes('имя') || qLower.includes('nom')) {
+                    resposta = t.nameAns;
+                }
+                else if (qLower.includes('oi') || qLower.includes('olá') || qLower.includes('hello') || qLower.includes('hi') || qLower.includes('hola') || qLower.includes('привет') || qLower.includes('salut') || qLower.includes('hallo')) {
+                    resposta = t.helloAns;
+                }
+                else if (qLower.includes('tudo bem') || qLower.includes('how are you') || qLower.includes('como estás') || qLower.includes('как дела') || qLower.includes('ça va') || qLower.includes('wie geht')) {
+                    resposta = t.goodAns;
+                }
+                else if (qLower.includes('idiota') || qLower.includes('stupid') || qLower.includes('tonto') || qLower.includes('дурак') || qLower.includes('idiot')) {
+                    resposta = t.badWordAns;
+                }
+                else if (qLower.includes('tchau') || qLower.includes('bye') || qLower.includes('adiós') || qLower.includes('пока') || qLower.includes('au revoir') || qLower.includes('tschüss')) {
+                    resposta = t.byeAns;
+                }
+                else if (qLower.includes('bom dia') || qLower.includes('good morning') || qLower.includes('buenos días') || qLower.includes('доброе утро') || qLower.includes('bonjour') || qLower.includes('guten morgen')) {
+                    resposta = t.morningAns;
+                }
+                else if (qLower.includes('boa tarde') || qLower.includes('good afternoon') || qLower.includes('buenas tardes') || qLower.includes('добрый день') || qLower.includes('bon après-midi') || qLower.includes('guten tag')) {
+                    resposta = t.afternoonAns;
+                }
+                else if (qLower.includes('boa noite') || qLower.includes('good night') || qLower.includes('buenas noches') || qLower.includes('спокойной ночи') || qLower.includes('bonne nuit') || qLower.includes('gute nacht')) {
+                    resposta = t.nightAns;
+                }
+
+                chatBox.innerText = resposta;
+                chatBox.style.display = 'block';
+                playAnimation(animations.pergunta, 'YES.mp3', 45);
+            }
+        }
+    </script>
+</body>
+</html>
+
